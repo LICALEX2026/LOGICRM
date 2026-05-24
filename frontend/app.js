@@ -161,9 +161,14 @@ function App() {
       }
     }
 
+    const normalizedShipments = (shipmentsData.shipments || []).map((shipment) => ({
+      ...shipment,
+      departure_date: normalizeDateOnly(shipment.departure_date)
+    }));
+
     setSummary(summaryData.stats);
     setClients(clientsData.clients);
-    setShipments(shipmentsData.shipments);
+    setShipments(normalizedShipments);
     setOperators(operatorsData?.operators || []);
     setVehicles(vehiclesData?.vehicles || []);
     setUsers(usersData?.users || []);
@@ -171,7 +176,8 @@ function App() {
       if (!current) {
         return null;
       }
-      return shipmentsData.shipments.find((item) => item.id === current.id) || null;
+      const matchedShipment = normalizedShipments.find((item) => item.id === current.id);
+      return matchedShipment ? { ...matchedShipment } : null;
     });
     setShipmentForm((current) => ({
       ...current,
@@ -806,21 +812,46 @@ function TimelineCard({ title, body, meta }) {
 }
 
 function formatDate(value) {
+  const normalized = normalizeDateOnly(value);
+  if (!normalized) {
+    return "-";
+  }
   return new Intl.DateTimeFormat("es-MX", {
     day: "2-digit",
     month: "short",
     year: "numeric"
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(new Date(`${normalized}T00:00:00`));
 }
 
 function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "-";
+  }
   return new Intl.DateTimeFormat("es-MX", {
     day: "2-digit",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  }).format(new Date(value));
+  }).format(date);
+}
+
+function normalizeDateOnly(value) {
+  if (!value) {
+    return "";
+  }
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) {
+      return match[1];
+    }
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toISOString().slice(0, 10);
 }
 
 function statusClass(status) {

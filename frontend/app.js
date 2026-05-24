@@ -66,7 +66,9 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      refresh();
+      refresh().catch((refreshError) => {
+        setError(refreshError.message);
+      });
     }
   }, [user, filter]);
 
@@ -80,31 +82,84 @@ function App() {
       headers,
       ...options
     });
-    const payload = await response.json();
+    const rawPayload = await response.text();
+    let payload = {};
+
+    if (rawPayload) {
+      try {
+        payload = JSON.parse(rawPayload);
+      } catch {
+        payload = {
+          error: rawPayload.includes("<!doctype") || rawPayload.includes("<html")
+            ? "El servidor devolvio una respuesta invalida."
+            : rawPayload
+        };
+      }
+    }
+
     if (!response.ok) {
-      throw new Error(payload.error || "Ocurrio un error.");
+      throw new Error(payload.error || `Ocurrio un error (${response.status}).`);
     }
     return payload;
   }
 
   async function refresh() {
-    const requests = [
+    setError("");
+
+    const baseResults = await Promise.allSettled([
       request("/api/summary"),
       request("/api/clients"),
       request(`/api/shipments?status=${encodeURIComponent(filter)}`)
-    ];
+    ]);
+
+    const [summaryResult, clientsResult, shipmentsResult] = baseResults;
+    if (summaryResult.status !== "fulfilled") {
+      throw summaryResult.reason;
+    }
+    if (clientsResult.status !== "fulfilled") {
+      throw clientsResult.reason;
+    }
+    if (shipmentsResult.status !== "fulfilled") {
+      throw shipmentsResult.reason;
+    }
+
+    const summaryData = summaryResult.value;
+    const clientsData = clientsResult.value;
+    const shipmentsData = shipmentsResult.value;
+
+    let operatorsData = { operators: [] };
+    let vehiclesData = { vehicles: [] };
+    let usersData = { users: [] };
+    const partialErrors = [];
 
     if (!isClient) {
-      requests.push(request("/api/operators"));
-      requests.push(request("/api/vehicles"));
+      const internalResults = await Promise.allSettled([
+        request("/api/operators"),
+        request("/api/vehicles")
+      ]);
+      const [operatorsResult, vehiclesResult] = internalResults;
+
+      if (operatorsResult.status === "fulfilled") {
+        operatorsData = operatorsResult.value;
+      } else {
+        partialErrors.push("No se pudo cargar la lista de operadores.");
+      }
+
+      if (vehiclesResult.status === "fulfilled") {
+        vehiclesData = vehiclesResult.value;
+      } else {
+        partialErrors.push("No se pudo cargar la lista de unidades.");
+      }
     }
 
     if (isAdmin) {
-      requests.push(request("/api/users"));
+      const usersResult = await Promise.allSettled([request("/api/users")]);
+      if (usersResult[0].status === "fulfilled") {
+        usersData = usersResult[0].value;
+      } else {
+        partialErrors.push("No se pudo cargar el control de accesos.");
+      }
     }
-
-    const results = await Promise.all(requests);
-    const [summaryData, clientsData, shipmentsData, operatorsData, vehiclesData, usersData] = results;
 
     setSummary(summaryData.stats);
     setClients(clientsData.clients);
@@ -132,6 +187,8 @@ function App() {
       ...current,
       client_id: current.client_id || String(clientsData.clients[0]?.id || "")
     }));
+
+    setInfoMessage(partialErrors.join(" "));
   }
 
   async function openShipmentHistory(shipmentId) {

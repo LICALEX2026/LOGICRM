@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: logicrm
+    runtime: node
+    rootDir: react-crm
+    buildCommand: npm install --prefix backend
+    startCommand: npm --prefix backend start
+    healthCheckPath: /api/health
+    plan: starter
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: logicrm-data
+      mountPath: /var/data
+      sizeGB: 1

@@ -64,7 +64,7 @@ function requireRole(req, res, roles) {
 }
 
 function requireInternalUser(req, res) {
-  return requireRole(req, res, ["Administrador", "Operaciones", "Ventas"]);
+  return requireRole(req, res, ["Administrador", "Operaciones", "Ventas", "Logistica / Trafico"]);
 }
 
 app.get("/api/health", (_req, res) => {
@@ -291,7 +291,7 @@ app.get("/api/operators", async (req, res) => {
 });
 
 app.post("/api/operators", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
   const { name, phone, license, status } = req.body;
@@ -303,7 +303,7 @@ app.post("/api/operators", async (req, res) => {
 });
 
 app.put("/api/operators/:id", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
   const { name, phone, license, status } = req.body;
@@ -339,7 +339,7 @@ app.get("/api/vehicles", async (req, res) => {
 });
 
 app.post("/api/vehicles", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
   const { label, plate, type, capacity, status } = req.body;
@@ -351,7 +351,7 @@ app.post("/api/vehicles", async (req, res) => {
 });
 
 app.put("/api/vehicles/:id", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
   const { label, plate, type, capacity, status } = req.body;
@@ -396,7 +396,7 @@ app.get("/api/shipments/:id", async (req, res) => {
 });
 
 app.post("/api/shipments", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Ventas", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Ventas", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
 
@@ -438,7 +438,7 @@ app.post("/api/shipments", async (req, res) => {
 });
 
 app.put("/api/shipments/:id", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Ventas", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Ventas", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
 
@@ -480,7 +480,7 @@ app.put("/api/shipments/:id", async (req, res) => {
 });
 
 app.patch("/api/shipments/:id", async (req, res) => {
-  if (!requireRole(req, res, ["Administrador", "Operaciones"])) {
+  if (!requireRole(req, res, ["Administrador", "Operaciones", "Logistica / Trafico"])) {
     return;
   }
 

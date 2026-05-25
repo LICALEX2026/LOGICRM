@@ -11,11 +11,59 @@ const statCards = [
   { key: "inTransit", label: "En transito", hint: "Unidades en ruta" }
 ];
 
+const accessTemplates = [
+  {
+    key: "admin",
+    role: "Administrador",
+    title: "Administrador",
+    username: "admin.logicrm",
+    name: "Administrador General",
+    password: "AdminLogicrm2026!",
+    detail: "Control total del CRM, accesos, clientes, envios y configuracion."
+  },
+  {
+    key: "operations",
+    role: "Operaciones",
+    title: "Operaciones",
+    username: "operaciones.logicrm",
+    name: "Coordinacion Operativa",
+    password: "OperaLogicrm2026!",
+    detail: "Actualiza estados, agenda, unidades, operadores y seguimiento."
+  },
+  {
+    key: "sales",
+    role: "Ventas",
+    title: "Ventas",
+    username: "ventas.logicrm",
+    name: "Ejecutivo Comercial",
+    password: "VentasLogicrm2026!",
+    detail: "Alta de clientes, registro de embarques y atencion comercial."
+  },
+  {
+    key: "traffic",
+    role: "Logistica / Trafico",
+    title: "Logistica / Trafico",
+    username: "trafico.logicrm",
+    name: "Control Trafico",
+    password: "TraficoLogicrm2026!",
+    detail: "Despacho, asignacion de rutas, control de unidades y seguimiento."
+  },
+  {
+    key: "client",
+    role: "Cliente",
+    title: "Cliente",
+    username: "cliente.empresa",
+    name: "Contacto Cliente",
+    password: "ClienteLogicrm2026!",
+    detail: "Consulta sus propios envios, bitacora y estatus en tiempo real."
+  }
+];
+
 const emptyLogin = { username: "", password: "" };
 const emptyClient = { name: "", company: "", email: "", phone: "", priority: "Alta" };
 const emptyOperator = { name: "", phone: "", license: "", status: "Disponible" };
 const emptyVehicle = { label: "", plate: "", type: "", capacity: "", status: "Disponible" };
-const emptyUser = { username: "", password: "", name: "", role: "Cliente", client_id: "" };
+const emptyUser = { username: "", password: "", name: "", role: "Operaciones", client_id: "" };
 const emptyInvite = { username: "", password: "", name: "", client_id: "" };
 const emptyPasswordForm = { currentPassword: "", newPassword: "", confirmPassword: "" };
 const emptyShipment = {
@@ -54,7 +102,7 @@ function App() {
 
   const role = user?.role;
   const isAdmin = role === "Administrador";
-  const isOperations = role === "Operaciones";
+  const isOperations = role === "Operaciones" || role === "Logistica / Trafico";
   const isSales = role === "Ventas";
   const isClient = role === "Cliente";
   const canManageClients = isAdmin || isSales;
@@ -267,6 +315,19 @@ function App() {
     await refresh();
   }
 
+  function applyAccessTemplate(template) {
+    setUserForm({
+      id: undefined,
+      username: template.username,
+      password: template.password,
+      name: template.name,
+      role: template.role,
+      client_id: template.role === "Cliente" ? String(clients[0]?.id || "") : ""
+    });
+    setInfoMessage(`Plantilla ${template.title} cargada. Ajusta los datos y guarda el usuario.`);
+    setError("");
+  }
+
   async function handleInviteSubmit(event) {
     event.preventDefault();
     const response = await request("/api/users/invite-client", {
@@ -394,10 +455,16 @@ function App() {
       <main className="content">
         <header className="hero">
           <div>
-            <p className="eyebrow">Centro de operaciones</p>
+            <p className="eyebrow">Control tower</p>
             <h1>LogiCRM</h1>
-            <p className="hero-copy">{isClient ? "Consulta el estado y la bitacora de tus envios en tiempo real." : "Interfaz React conectada a una API local con persistencia en archivo JSON."}</p>
+            <p className="hero-copy">{isClient ? "Consulta el estado y la bitacora de tus envios en tiempo real." : "Operacion comercial y logistica conectada en un solo tablero, con accesos por area y seguimiento centralizado."}</p>
           </div>
+          {!isClient ? (
+            <div className="hero-automation">
+              <strong>Flujo automatizado</strong>
+              <p>Accesos por rol, visibilidad por area y control rapido de cuentas internas y clientes.</p>
+            </div>
+          ) : null}
         </header>
 
         <section className="stats-grid">
@@ -455,6 +522,16 @@ function App() {
               <div className="panel-heading">
                 <p className="eyebrow">Usuarios</p>
                 <h3>Control de accesos</h3>
+                <p className="helper">Da de alta perfiles listos para administracion, operaciones, ventas, clientes y logistica / trafico.</p>
+              </div>
+              <div className="access-template-grid">
+                {accessTemplates.map((template) => (
+                  <button key={template.key} type="button" className="access-template-card" onClick={() => applyAccessTemplate(template)}>
+                    <span className="template-role">{template.title}</span>
+                    <strong>{template.username}</strong>
+                    <p>{template.detail}</p>
+                  </button>
+                ))}
               </div>
               <form className="form-grid" onSubmit={handleUserSubmit}>
                 <input placeholder="Nombre" value={userForm.name} onChange={(event) => setUserForm({ ...userForm, name: event.target.value })} />
@@ -464,6 +541,7 @@ function App() {
                   <option value="Administrador">Administrador</option>
                   <option value="Operaciones">Operaciones</option>
                   <option value="Ventas">Ventas</option>
+                  <option value="Logistica / Trafico">Logistica / Trafico</option>
                   <option value="Cliente">Cliente</option>
                 </select>
                 <select value={userForm.client_id} onChange={(event) => setUserForm({ ...userForm, client_id: event.target.value })} disabled={userForm.role !== "Cliente"}>
@@ -491,7 +569,7 @@ function App() {
                       <tr key={item.id}>
                         <td><strong>{item.name}</strong></td>
                         <td>{item.username}</td>
-                        <td>{item.role}{item.client_company ? ` | ${item.client_company}` : ""}</td>
+                        <td><span className={`role-pill ${rolePillClass(item.role)}`}>{item.role}</span>{item.client_company ? ` | ${item.client_company}` : ""}</td>
                         <td>
                           <div className="status-actions compact">
                             <button type="button" className="ghost-btn" onClick={() => setUserForm({ ...item, password: "", client_id: item.client_id ? String(item.client_id) : "" })}>Editar</button>
@@ -864,6 +942,21 @@ function statusClass(status) {
       return "status-incidencia";
     default:
       return "status-pendiente";
+  }
+}
+
+function rolePillClass(role) {
+  switch (role) {
+    case "Administrador":
+      return "role-admin";
+    case "Operaciones":
+      return "role-operations";
+    case "Ventas":
+      return "role-sales";
+    case "Logistica / Trafico":
+      return "role-traffic";
+    default:
+      return "role-client";
   }
 }
 

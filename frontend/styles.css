@@ -205,6 +205,26 @@ select {
   max-width: 660px;
 }
 
+.hero-automation {
+  min-width: 280px;
+  max-width: 360px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(37, 28, 19, 0.96), rgba(93, 56, 24, 0.9));
+  color: #fff8ed;
+}
+
+.hero-automation strong {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.hero-automation p {
+  margin: 0;
+  color: rgba(255, 248, 237, 0.8);
+}
+
 .stats-grid,
 .panel-grid {
   display: grid;
@@ -370,6 +390,82 @@ th {
   color: var(--muted);
 }
 
+.access-template-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.access-template-card {
+  text-align: left;
+  border: 1px solid rgba(57, 46, 34, 0.08);
+  border-radius: 22px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(245, 235, 220, 0.92));
+  color: var(--ink);
+  box-shadow: 0 10px 32px rgba(56, 30, 6, 0.08);
+}
+
+.access-template-card strong {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.access-template-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.template-role {
+  display: inline-flex;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(195, 95, 46, 0.12);
+  color: var(--accent-deep);
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  margin-right: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.role-admin {
+  background: rgba(138, 56, 24, 0.14);
+  color: var(--accent-deep);
+}
+
+.role-operations {
+  background: rgba(15, 118, 110, 0.14);
+  color: var(--teal);
+}
+
+.role-sales {
+  background: rgba(8, 145, 178, 0.14);
+  color: #0f5f75;
+}
+
+.role-traffic {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+}
+
+.role-client {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--ok);
+}
+
 @media (max-width: 1180px) {
   .auth-panel,
   .app-shell {
@@ -387,6 +483,10 @@ th {
 
   .panel-grid,
   .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .access-template-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -410,6 +510,10 @@ th {
   .stats-grid,
   .panel-grid,
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .access-template-grid {
     grid-template-columns: 1fr;
   }
 
